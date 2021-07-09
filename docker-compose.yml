@@ -1,0 +1,14 @@
+version: "3.7"
+
+services:
+        selenium:
+                image: selenium/standalone-firefox
+                container_name: "selenium"
+        api:
+                build: .
+                container_name: api
+                ports: 
+                        - 8000:8000
+                depends_on: 
+                        - selenium
+               
