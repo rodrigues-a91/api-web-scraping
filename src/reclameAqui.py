@@ -1,9 +1,4 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Tue Jul  6 21:35:50 2021
 
-@author: CONSISTE
-"""
 from selenium import webdriver
 from bs4 import BeautifulSoup
 

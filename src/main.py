@@ -1,5 +1,6 @@
 
-import code
+import reclameAqui
+import instagram
 import uvicorn
 from fastapi import FastAPI
 
@@ -10,6 +11,11 @@ app = FastAPI()
 def read_root():
     return {"Hello": "World"}
 
-@app.get("/download")
+@app.get("/reclameAqui")
 def read_item():
-    return code.minerar()
+    return reclameAqui.minerar()
+
+@app.get("/instagram")
+def read_item():
+    return instagram.minerar()
+
