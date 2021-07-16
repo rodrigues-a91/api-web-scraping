@@ -1,7 +1,6 @@
 
-import reclameAqui
-import instagram
-import uvicorn
+from reclameAqui import ReclameAqui
+from instagram import Instagram
 from fastapi import FastAPI
 
 app = FastAPI()
@@ -13,9 +12,11 @@ def read_root():
 
 @app.get("/reclameAqui")
 def read_item():
-    return reclameAqui.minerar()
+    minerador = ReclameAqui()
+    return minerador.minerar()
 
 @app.get("/instagram")
 def read_item():
-    return instagram.minerar()
+    minerador = Instagram()
+    return minerador.minerar()
 
