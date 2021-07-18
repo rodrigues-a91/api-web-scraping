@@ -10,12 +10,6 @@ app = FastAPI()
 def read_root():
     return {"Hello": "World"}
 
-
-@app.get("/instagram")
-def read_item():
-    minerador = Instagram()
-    return minerador.minerar()
-
 @app.get("/reclameAqui/")
 def read_item(empresa: str):
     minerador = ReclameAqui()
