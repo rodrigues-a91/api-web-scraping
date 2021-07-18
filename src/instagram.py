@@ -7,9 +7,9 @@ import json
 class Instagram:
     def __init__(self):
         self.url = 'https://www.instagram.com/'
-        #self.driver = webdriver.Remote("http://selenium:4444/wd/hub", desired_capabilities={'browserName':'firefox'})
-        self.driver = webdriver.Chrome(
-            executable_path='C:/Users/CONSISTE/Downloads/chromedriver.exe')
+        self.driver = webdriver.Remote("http://selenium:4444/wd/hub", desired_capabilities={'browserName':'firefox'})
+        #self.driver = webdriver.Chrome(
+        #    executable_path='C:/Users/CONSISTE/Downloads/chromedriver.exe')
     def pesquisarPerfil(self):
         pesquisar = self.driver.find_element_by_xpath('//input[@class="XTCLo  x3qfX "]')
         pesquisar.send_keys('rodrigues_a91')
@@ -66,7 +66,3 @@ class Instagram:
         self.driver.quit()
         return self.jsonNicks
     
-if __name__ == '__main__':
-  minerador = Instagram()
-  documents = minerador.minerar()
-  print(documents)

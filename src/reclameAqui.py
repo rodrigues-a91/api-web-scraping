@@ -6,9 +6,9 @@ import time
 
 class ReclameAqui:
     def __init__(self):
-        self.url = 'https://www.reclameaqui.com.br/ranking/'
-        self.driver = webdriver.Chrome(
-            executable_path='C:/Users/CONSISTE/Downloads/chromedriver.exe')
+        self.driver = webdriver.Remote("http://selenium:4444/wd/hub", desired_capabilities={'browserName':'firefox'})
+        #self.driver = webdriver.Chrome(
+        #    executable_path='C:/Users/CONSISTE/Downloads/chromedriver.exe')
         self.documents = []
 
     def verificarRepeticaoEmpresa(self):
@@ -23,22 +23,24 @@ class ReclameAqui:
 
     def extrairEstatisticas(self):
         time.sleep(3)
+        self.driver.find_element_by_id('reputation-tab-5').click()
+        time.sleep(5)
         painelDeNotas = self.driver.find_element_by_id('reputation')
         html_painel = painelDeNotas.get_attribute('outerHTML')
         soup_painel = BeautifulSoup(html_painel, 'html.parser')
 
         detalhes = list(soup_painel.stripped_strings)
         self.docAtual = {'empresa': self.nome,
-                         'notaPrincipal': detalhes[7],
+                         'nota_principal': detalhes[7],
                          'periodo': detalhes[9],
-                         detalhes[10]: detalhes[11],
-                         detalhes[12]: detalhes[13],
-                         detalhes[14]: detalhes[15],
-                         detalhes[16]: detalhes[17],
-                         detalhes[18]: detalhes[19],
-                         detalhes[20]: detalhes[21],
-                         detalhes[22]: detalhes[23],
-                         detalhes[24]: detalhes[25]}
+                         'qtd_reclamacoes': detalhes[11],
+                         'qtd_respondidas': detalhes[13],
+                         'percentual_reclamacoes_respondidas': detalhes[15],
+                         'percentual_voltariam_a_fazer_negocio': detalhes[17],
+                         'percentual_indice_de_solucao': detalhes[19],
+                         'nota_consumidor': detalhes[21],
+                         'qtd_nao_respondidas': detalhes[23],
+                         'qtd_avaliadas': detalhes[25]}
 
     def extrairSobre(self):
         sobre = self.driver.find_element_by_xpath(
@@ -46,33 +48,40 @@ class ReclameAqui:
         self.docAtual.update({'sobre': sobre})
 
     def extrairComentarios(self):
+        time.sleep(3)
         maisComentarios = self.driver.find_element_by_id(
           'box-complaints-read-all')
-        linkComentarios = maisComentarios.get_attribute('href')
-        self.driver.execute_script(f'window.open("{linkComentarios}")')
-        time.sleep(4)
+        linkMaisComentarios = maisComentarios.get_attribute('href')
+        self.driver.execute_script(f'window.open("{linkMaisComentarios}")')
         self.driver.switch_to.window(self.driver.window_handles[-1])
-
-        listaComentarios = self.driver.find_elements_by_xpath(
-            '//ul[@class="complain-list"]/li[@class="ng-scope"]')
+        time.sleep(7)
+        qtdCometarios = len(self.driver.find_elements_by_xpath('//ul[@class="complain-list"]/li[@class="ng-scope"]/a'))
         comentarios = []
-        for comentario in listaComentarios:
-            html_comentario = comentario.get_attribute('outerHTML')
-            soup_comentario = BeautifulSoup(html_comentario, 'html.parser')
-            dados = soup_comentario.find_all('p')
-            jsonComentario = {'titulo': dados[0].text,
-                              'comentario': dados[1].text}
-            comentarios.append(jsonComentario)
 
+        for cont in range(qtdCometarios):
+            comentario = self.driver.find_elements_by_xpath('//ul[@class="complain-list"]/li[@class="ng-scope"]/a')[cont]
+            linkComentario = comentario.get_attribute('href')
+            self.driver.execute_script(f'window.open("{linkComentario}")')
+            self.driver.switch_to.window(self.driver.window_handles[-1])
+            time.sleep(7)
+            
+            tituloComentario = self.driver.find_element_by_xpath('//h1[@class="ng-binding"]').text
+            descricaoComentario = self.driver.find_element_by_xpath('//p[@ng-bind-html="reading.complains.description|textModerateDecorator"]').text
+            jsonComentario = {'titulo': tituloComentario, 'descricao': descricaoComentario}
+            
+            comentarios.append(jsonComentario)
+            self.driver.close()
+            self.driver.switch_to.window(self.driver.window_handles[-1])
+            time.sleep(5)
+                
         self.docAtual.update({'comentarios': comentarios})
-        #print(self.docAtual)
+        print(self.docAtual)
 
         self.documents.append(self.docAtual)
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[-1])
         self.driver.close()
         self.driver.switch_to.window(self.driver.window_handles[-1])
-        time.sleep(5)
 
     def selecionarEmpresa(self, qtdEmpresas):
       for cont in range(qtdEmpresas):
@@ -94,18 +103,46 @@ class ReclameAqui:
               self.extrairComentarios()
 
     def minerar(self):
-        self.driver.get(self.url)
+        url = 'https://www.reclameaqui.com.br/ranking/'
+        self.driver.get(url)
         time.sleep(3)
         aceitarCookies = self.driver.find_element_by_id(
             'onetrust-accept-btn-handler')
         aceitarCookies.click()
         empresas = self.driver.find_elements_by_xpath(
             '//a[@class="business-name ng-binding ng-scope"]')
-        qtdEmpresas = len(empresas) + 1
+        qtdEmpresas = len(empresas)
         self.selecionarEmpresa(qtdEmpresas)
         self.driver.quit()
         return self.documents
+    
+    def minerarEmpresa(self, empresa):
+        url = 'https://www.reclameaqui.com.br/'
+        self.driver.get(url)
+        time.sleep(3)
         
+        aceitarCookies = self.driver.find_element_by_id(
+            'onetrust-accept-btn-handler')
+        aceitarCookies.click()
+        buscarEmpresa = self.driver.find_element_by_xpath('//input[@class="form-search input-auto-complete-search"]')
+        buscarEmpresa.send_keys(empresa)
+        time.sleep(3)
+        
+        paginaEmpresa = self.driver.find_element_by_xpath('//div[@class="vueperslides__track-inner"]/a[1]')
+        link = paginaEmpresa.get_attribute("href")
+        self.driver.execute_script(f'window.open("{link}")')
+        self.driver.switch_to.window(self.driver.window_handles[-1])
+        time.sleep(5)
+        
+        self.nome = self.driver.find_element_by_xpath(
+            '//h1[@class="short-name"]').text.strip()
+        self.extrairEstatisticas()
+        self.extrairSobre()
+        self.extrairComentarios()
+        self.driver.quit()
+        return self.documents
+    
 if __name__ == '__main__':
-  minerador = ReclameAqui()
-  documents = minerador.minerar()
+    minerador = ReclameAqui()
+    print(minerador.minerarEmpresa("banco do brasil"))
+        
