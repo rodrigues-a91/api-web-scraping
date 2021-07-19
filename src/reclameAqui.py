@@ -5,14 +5,13 @@ import time
 
 
 class ReclameAqui:
-    def __init__(self):
+    def __init__(self, pathToDriver = None):
         self.driver = webdriver.Remote("http://selenium:4444/wd/hub", desired_capabilities={'browserName':'firefox'})
-        #self.driver = webdriver.Chrome(
-        #    executable_path='C:/Users/CONSISTE/Downloads/chromedriver.exe')
+        #self.driver = webdriver.Chrome(executable_path=pathToDriver)
         self.documents = []
 
     def verificarRepeticaoEmpresa(self):
-        time.sleep(4)
+        time.sleep(10)
         self.nome = self.driver.find_element_by_xpath(
             '//h1[@class="short-name"]').text.strip()
         for documento in self.documents:
@@ -22,9 +21,9 @@ class ReclameAqui:
         return False
 
     def extrairEstatisticas(self):
-        time.sleep(3)
-        self.driver.find_element_by_id('reputation-tab-5').click()
         time.sleep(5)
+        self.driver.find_element_by_id('reputation-tab-5').click()
+        time.sleep(7)
         painelDeNotas = self.driver.find_element_by_id('reputation')
         html_painel = painelDeNotas.get_attribute('outerHTML')
         soup_painel = BeautifulSoup(html_painel, 'html.parser')
@@ -48,13 +47,13 @@ class ReclameAqui:
         self.docAtual.update({'sobre': sobre})
 
     def extrairComentarios(self):
-        time.sleep(3)
+        time.sleep(5)
         maisComentarios = self.driver.find_element_by_id(
           'box-complaints-read-all')
         linkMaisComentarios = maisComentarios.get_attribute('href')
         self.driver.execute_script(f'window.open("{linkMaisComentarios}")')
         self.driver.switch_to.window(self.driver.window_handles[-1])
-        time.sleep(7)
+        time.sleep(20)
         qtdCometarios = len(self.driver.find_elements_by_xpath('//ul[@class="complain-list"]/li[@class="ng-scope"]/a'))
         comentarios = []
 
@@ -72,10 +71,9 @@ class ReclameAqui:
             comentarios.append(jsonComentario)
             self.driver.close()
             self.driver.switch_to.window(self.driver.window_handles[-1])
-            time.sleep(5)
+            time.sleep(8)
                 
         self.docAtual.update({'comentarios': comentarios})
-        print(self.docAtual)
 
         self.documents.append(self.docAtual)
         self.driver.close()
@@ -85,13 +83,13 @@ class ReclameAqui:
 
     def selecionarEmpresa(self, qtdEmpresas):
       for cont in range(qtdEmpresas):
-          time.sleep(3)
+          time.sleep(7)
           empresa = self.driver.find_elements_by_xpath(
               '//a[@class="business-name ng-binding ng-scope"]')[cont]
           link = empresa.get_attribute("href")
           self.driver.execute_script(f'window.open("{link}")')
           self.driver.switch_to.window(self.driver.window_handles[-1])
-          time.sleep(3)
+          time.sleep(7)
           jaExiste = self.verificarRepeticaoEmpresa()
           if jaExiste == True:
               self.driver.close()
@@ -119,14 +117,14 @@ class ReclameAqui:
     def minerarEmpresa(self, empresa):
         url = 'https://www.reclameaqui.com.br/'
         self.driver.get(url)
-        time.sleep(3)
+        time.sleep(5)
         
         aceitarCookies = self.driver.find_element_by_id(
             'onetrust-accept-btn-handler')
         aceitarCookies.click()
         buscarEmpresa = self.driver.find_element_by_xpath('//input[@class="form-search input-auto-complete-search"]')
         buscarEmpresa.send_keys(empresa)
-        time.sleep(3)
+        time.sleep(7)
         
         paginaEmpresa = self.driver.find_element_by_xpath('//div[@class="vueperslides__track-inner"]/a[1]')
         link = paginaEmpresa.get_attribute("href")
@@ -143,6 +141,6 @@ class ReclameAqui:
         return self.documents
     
 if __name__ == '__main__':
-    minerador = ReclameAqui()
-    print(minerador.minerarEmpresa("banco do brasil"))
+    minerador = ReclameAqui('C:/Users/CONSISTE/Downloads/chromedriver.exe')
+    print(minerador.minerarEmpresa("kinvo"))
         

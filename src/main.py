@@ -1,6 +1,5 @@
 
 from reclameAqui import ReclameAqui
-from instagram import Instagram
 from fastapi import FastAPI
 
 app = FastAPI()
